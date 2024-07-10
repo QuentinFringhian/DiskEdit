@@ -1,0 +1,444 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{tikz}
+
+\usetikzlibrary{shapes.misc}
+\usetikzlibrary{shapes.geometric}
+
+\lstdefinestyle{terminal}{
+    basicstyle=\ttfamily,
+    columns=fullflexible,
+    frame=single,
+    framesep=3pt,
+    rulecolor=\color{black},
+}
+
+\lstdefinestyle{cstyle}{
+    language=C,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    commentstyle=\color{green}\ttfamily,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    frame=single,
+    framexleftmargin=15pt,
+    framexrightmargin=15pt,
+    framexbottommargin=5pt,
+    framextopmargin=5pt,
+}
+
+\begin{document}
+
+\title{DiskEdit}
+\author{Quentin Fringhian, Pierre Aillet}
+\date{\today}
+\maketitle
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+
+Welcome to \textbf{DiskEdit}, a program that allows you to edit a disk image with a simple file system. It provides a text-based user interface (TUI) that helps you create files, directories, and edit existing files.
+
+This document is a report of the project 3, which was developed as part of the "Operating Systems" course at Dankook University. In this report, we will explain how to use the program, how it works, and how to compile it. We will focus on the features that allow you to edit the disk image and will not discuss the implementation of the TUI in detail.
+
+If you have any questions or would like to learn more about the TUI, please send us an email.
+
+\paragraph{Purpose}
+The purpose of DiskEdit is to provide a simple and intuitive tool for editing disk images. It is designed to be easy to use, even for users who are new to operating systems or disk image editing. With DiskEdit, you can create and modify files and directories on a disk image, just as you would on a regular computer.
+
+\paragraph{Features}
+Some of the main features of DiskEdit include:
+\begin{itemize}
+    \item Creating and deleting files and directories
+    \item Editing the contents of files
+    \item Displaying the directory structure and file metadata
+\end{itemize}
+
+\section{Running the Program}
+
+To run the DiskEdit program, you will need to compile it first. To do this, navigate to the root directory of the project and run the following command:
+
+\begin{lstlisting}[style=terminal]
+make
+\end{lstlisting}
+
+This will create an executable file called `diskEdit` in the root directory of the project. You can then run the program by using the following command:
+
+\begin{lstlisting}[style=terminal]
+./diskEdit <disk image>
+\end{lstlisting}
+
+where `\textless disk image\textgreater` is the path to the disk image that you want to edit.
+
+\paragraph{Text-based User Interface (TUI)}
+
+When you run the program, it will open the TUI, which allows you to navigate through and edit the contents of the disk image. The TUI consists of two main parts: the directory view and the file view.
+
+\subsection{Directory View}
+
+In the directory view, you can use the UP and DOWN arrow keys to move between different files and directories. To enter a directory, you can press the ENTER key on the selected directory.
+
+The TUI also provides a command prompt that you can use to perform various actions. To access the command prompt, you can press the `:` key. This will open a prompt where you can enter commands.
+
+Here is a list of the commands that you can use in the directory view:
+
+\begin{itemize}
+    \item \texttt{quit} or \texttt{q}: Quit the program
+    \item \texttt{touch}: Create a new file. The TUI will prompt you to enter the name of the file you want to create.
+    \item \texttt{mkdir}: Create a new directory. The TUI will prompt you to enter the name of the directory you want to create.
+    \item \texttt{rm}: Delete the currently selected file.
+    \item \texttt{rmdir}: Delete the currently selected directory, including all of its contents (files and subdirectories).
+\end{itemize}
+
+\subsection{File View}
+
+To view or edit the contents of a file, you can press the ENTER key on the selected file in the directory view. This will open the file view, which allows you to navigate through and edit the contents of the file.
+
+In the file view, you can use the UP and DOWN arrow keys to move between lines in the file, and the LEFT and RIGHT arrow keys to move within a line.
+
+To enter a command in the file view, you can press the `:` key to access the command prompt. From the command prompt, you can enter the following commands:
+
+\begin{itemize}
+    \item \texttt{edit} or \texttt{e}: Enter edit mode, which allows you to modify the contents of the file. To exit edit mode, you can press the ESC key.
+    \item \texttt{save} or \texttt{s}: Save your changes to the file.
+\end{itemize}
+
+\section{Explanation of How the Program Works}
+
+In this section, we will delve into the details of how DiskEdit interacts with the disk image. First, we will examine the file system used by the disk image and the various structures that make up this file system to have a better understanding of how DiskEdit works. Then, we will see how DiskEdit uses these structures to perform various operations on the disk image.
+
+\subsection{File System}
+
+The disk image that DiskEdit operates on is divided into three main parts: the super block, the inode table, and the data blocks. These three parts work together to store and manage the files and directories on the disk image.
+
+\paragraph{Super Block}
+
+The super block is a special block that contains important information about the overall structure and layout of the file system. It is usually located at the beginning of the disk image and contains the following fields:
+
+\begin{itemize}
+    \item \texttt{partition\_type}: Indicates the type of partition used by the file system (e.g., ext2, fat32, etc.).
+    \item \texttt{block\_size}: The size of a block in bytes.
+    \item \texttt{inode\_size}: The size of an inode in bytes.
+    \item \texttt{first\_inode}: The index of the root inode in the inode table.
+    \item \texttt{num\_inodes}: The total number of inodes in the file system.
+    \item \texttt{num\_inode\_blocks}: The number of blocks reserved for the inode table.
+    \item \texttt{num\_free\_inodes}: The number of free inodes available for use.
+    \item \texttt{num\_blocks}: The total number of blocks in the file system.
+    \item \texttt{num\_free\_blocks}: The number of free blocks available for use.
+    \item \texttt{first\_data\_block}: The index of the first data block.
+    \item \texttt{volume\_name}: A string containing the name of the volume.
+    \item \texttt{block\_bitmap}: A bitmap that indicates which blocks are free and which are used.
+    \item \texttt{padding}: Padding to ensure that the super block is a fixed size.
+\end{itemize}
+
+DiskEdit primarily uses the \texttt{block\_size}, \texttt{inode\_size}, \texttt{first\_inode}, and \texttt{block\_bitmap} fields from the super block.
+
+\paragraph{Inode Table}
+
+The inode table is a contiguous block or blocks that contain information about the files and directories on the disk image. Each inode corresponds to a single file or directory and contains the following fields:
+
+\begin{itemize}
+    \item \texttt{mode}: Indicates the type of the file or directory (e.g., regular file, directory, device file) and the permissions associated with it.
+    \item \texttt{locked}: A flag that indicates whether the file is currently being written to.
+    \item \texttt{date}: The date and time when the file or directory was created or last modified.
+    \item \texttt{size}: The size of the file in bytes.
+    \item \texttt{indirect\_block}: A block number that points to an indirect block, which in turn points to the data blocks containing the contents of the file. If this field is set to -1, it indicates that the file does not use an indirect block.
+    \item \texttt{blocks}: An array of block numbers that directly point to the data blocks containing the contents of the file.
+\end{itemize}
+
+DiskEdit primarily uses the \texttt{mode}, \texttt{size}, and \texttt{blocks} fields from the inode.
+
+\paragraph{Data Blocks}
+
+Data blocks are the actual blocks that store the contents of the files and directories on the disk image. They are simply arrays of bytes with the following structure:
+
+\begin{lstlisting}[style=cstyle]
+struct blocks {
+    unsigned char d[1024];
+};
+\end{lstlisting}
+
+The inodes and the data blocks work together to store the contents of the files and directories on the disk image. The inodes contain metadata about the files and directories, such as their sizes and permissions, as well as pointers to the data blocks that contain their contents. The data blocks, on the other hand, contain the raw data of the files and directories.
+
+With this understanding of the file system used by the disk image, we can now see how DiskEdit manipulates and manages the files and directories on the disk image.
+
+\subsection{DiskEdit Commands}
+
+DiskEdit provides a number of commands that allow you to perform various operations on the disk image, such as creating, deleting, and modifying inodes and blocks.
+
+\subsubsection{Loading the Disk Image}
+
+Before you can use the various DiskEdit commands, you must first load the disk image into the program. When you load a disk image, DiskEdit reads the necessary information from the disk image file and stores it in a special data structure called the \texttt{disk} structure. This structure contains the following fields:
+
+\begin{itemize}
+    \item \texttt{super\_block}: The super block of the disk image, which contains information about the overall structure and layout of the file system.
+    \item \texttt{inode\_table}: The inode table of the disk image, which contains information about the files and directories on the disk image.
+    \item \texttt{current\_dir}: The inodes index of the files and directories in the currently loaded directory.
+    \item \texttt{cache}: A cache that stores the contents of the files and directories that have been loaded into memory.
+    \item \texttt{blocks\_offset}: The offset of the data blocks in the disk image file.
+    \item \texttt{d\_path}: The path of the disk image file.
+\end{itemize}
+
+To optimize memory usage, DiskEdit only loads the necessary information from the disk image file into memory and does not read the data blocks until they are actually needed. This allows DiskEdit to efficiently handle large disk images without using excessive memory.
+
+When you load a disk image, the program will automatically load the root directory into memory. You can then use the various DiskEdit commands to navigate and manipulate the files and directories on the disk image.
+
+\subsubsection{Manipulating Blocks}
+
+This sub-subsection covers the various operations that can be performed on blocks in the disk image, including reading, allocating, deleting, and editing blocks.
+
+\paragraph{Reading a Block}\mbox{}\\
+The \texttt{read\_block} command is used to retrieve the contents of a block in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{block}, indicating the index of the block to be read.
+    \item An unsigned integer, \texttt{size}, indicating the size of the block to be read.
+\end{itemize}
+
+The command returns a \texttt{block\_buff\_t} structure, which consists of the following fields:
+
+\begin{lstlisting}[style=cstyle]
+typedef struct block_buff_s {
+    int block_number;
+    unsigned char *data;
+} block_buff_t;
+\end{lstlisting}
+
+\begin{itemize}
+    \item The data of the block is stored in the \texttt{data} field of the structure.
+    \item The \texttt{block\_number} field contains the index of the block that was read.
+\end{itemize}
+
+When this command is executed, it first checks the cache for the requested block. If the block is present in the cache, it is returned from there. Otherwise, the block is read from the disk image file, stored in the cache, and then returned to the caller. For further details, refer to the \texttt{read\_block} function in the \texttt{block\_load.c} file.
+
+\paragraph{Allocating a Block}\mbox{}\\
+The \texttt{alloc\_block} command is used to allocate a new block in the disk image. It takes the following argument as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+\end{itemize}
+
+The command returns an integer, which indicates the index of the newly allocated block, if successful. Otherwise, it returns -1.
+
+When this command is executed, it searches the block bitmap in the super block of the disk image for an available block. As soon as it finds a free block, it updates the corresponding bit in the bitmap to 1 and returns the index of the newly allocated block. For further details, refer to the \texttt{alloc\_block} function in the \texttt{block\_create.c} file.
+
+\paragraph{Deleting a Block}\mbox{}\\
+The \texttt{free\_block} command is used to free a specified block in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{block}, indicating the index of the block to be freed.
+\end{itemize}
+
+The command does not return any value.
+
+When this command is executed, it updates the corresponding bit in the block bitmap to 0. For further details, refer to the \texttt{free\_block} function in the \texttt{block\_create.c} file.
+
+\paragraph{Editing a Block}\mbox{}\\
+The \texttt{block\_edit} command is used to edit the contents of a block in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{block}, indicating the index of the block to be edited.
+    \item An unsigned char pointer, \texttt{data}, which points to the data to be written to the block.
+    \item An unsigned integer, \texttt{size}, indicating the size of the data to be written to the block.
+\end{itemize}
+
+The command does not return any value.
+
+When this command is executed, it writes the data pointed to by the \texttt{data} argument to the specified block in the disk image. For further details, refer to the \texttt{edit\_block} function in the \texttt{block\_edit.c} file.
+
+\subsubsection{Manipulating Inodes}
+
+This sub-subsection covers the various operations that can be performed on inodes in the disk image, including reading, allocating, deleting, and editing inodes.
+
+\paragraph{Reading an Inode}\mbox{}\\
+The \texttt{read\_inode} command is used to retrieve the contents of an inode in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{inode}, indicating the index of the inode to be read.
+\end{itemize}
+
+The command returns a \texttt{inode\_buff\_t} structure, which consists of the following fields:
+
+\begin{lstlisting}[style=cstyle]
+typedef struct inode_buff_s {
+    int inode_number;
+    unsigned short *blocks;
+    unsigned char *data;
+} inode_buff_t;
+\end{lstlisting}
+
+\begin{itemize}
+    \item The data of the inode is stored in the \texttt{data} field of the structure.
+    \item The \texttt{inode\_number} field contains the index of the inode that was read.
+    \item The \texttt{blocks} field contains the indices of the blocks that are allocated to the inode.
+\end{itemize}
+
+When this command is executed, it will retrieves an inode from the inode table in the super block of the disk image. It then copies the indexes of the blocks allocated to the inode into the \texttt{blocks} field of the \texttt{inode\_buff\_t} structure. Finally, it reads each allocated block using the \texttt{read\_block} command until it has read the equivalent of the size of the inode. For more information, see the \texttt{read\_inode} function in the \texttt{inode\_load.c} file.
+
+\paragraph{Allocating an Inode}\mbox{}\\
+The \texttt{alloc\_inode} command is used to allocate a new inode in the disk image. It takes the following argument as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An unsigned int, \texttt{mode}, indicating the mode of the inode to be allocated.
+\end{itemize}
+
+The command returns an integer, which indicates the index of the newly allocated inode.
+
+When this command is executed, it searches the inode table in the super block of the disk image for an available inode. Upon finding a free inode, it updates the inode table and sets the mode of the inode to the value specified by the \texttt{mode} argument, the size of the inode to 0, the date of the inode to the current date, and the list of blocks allocated to the inode to 0. For more information, see the \texttt{alloc\_inode} function in the \texttt{inode\_create.c} file.
+
+\paragraph{Deleting an Inode}\mbox{}\\
+The \texttt{free\_inode} command is used to free a specified inode in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{inode}, indicating the index of the inode to be freed.
+\end{itemize}
+
+The command does not return any value.
+
+When this command is executed, it frees all the blocks allocated to the inode using the \texttt{free\_block} command. It then updates the inode table to indicate that the inode is free. For more information, see the \texttt{free\_inode} function in the \texttt{inode\_create.c} file.
+
+\paragraph{Editing an Inode}\mbox{}\\
+The \texttt{inode\_edit} command is used to edit the contents of an inode in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{inode}, indicating the index of the inode to be edited.
+    \item An unsigned char pointer, \texttt{data}, which points to the data to be written to the inode.
+    \item An unsigned integer, \texttt{size}, indicating the size of the data to be written to the inode.
+\end{itemize}
+
+The \texttt{inode\_edit} function returns an integer indicating the success or failure of the operation. If the operation is successful, it returns 0. If the file is not editable, it returns -1. If the file is locked, it returns -2. If a block could not be allocated, it returns -3.
+
+When this command is executed, it first checks if the inode is editable. Then, block by block, it rewrites the data of the already allocated blocks using the \texttt{edit\_block} command. If there are no more allocated blocks available, it allocates a new block using the \texttt{alloc\_block} command. If the data to be written is smaller than the size of the inode, it frees the remaining blocks using the \texttt{free\_block} command. Finally, it updates the size of the inode to the size of the data written. For more information, see the \texttt{inode\_edit} function in the \texttt{inode\_edit.c} file.
+\subsubsection{Manipulating Directories}
+
+This sub-subsection covers the various operations that can be performed on directories in the disk image, including reading directories, changing directories, saving directories, creating files and directories, and deleting files and directories.
+
+\paragraph{Reading a Directory}\mbox{}\\
+The \texttt{read\_dir} command is used to retrieve the contents of a directory in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{inode}, indicating the index of the directory to be read.
+\end{itemize}
+
+The command returns a \texttt{dir\_buff\_t} structure, which consists of the following fields:
+
+\begin{lstlisting}[style=cstyle]
+typedef struct dir_buff_s {
+    int dir_inode_number;
+    file_list_t *file_list;
+} dir_buff_t;
+\end{lstlisting}
+
+\begin{itemize}
+    \item The \texttt{dir\_inode\_number} field contains the index of the directory that was read.
+    \item The \texttt{file\_list} field contains a list of the file information of the files and directories in the directory.
+\end{itemize}
+
+The file information is stored in the following structure:
+
+\begin{lstlisting}[style=cstyle]
+typedef struct file_s {
+    unsigned char *name;
+    int inode_number;
+} file_t;
+\end{lstlisting}
+
+\begin{itemize}
+    \item The \texttt{name} field contains the name of the file.
+    \item The \texttt{inode\_number} field contains the index of the inode of the file.
+\end{itemize}
+
+When this command is executed, it first check if the inode is a directory. If it is not, it returns a \texttt{NULL} pointer. Otherwise, it reads the inode of the directory using the \texttt{read\_inode} command, the data retrieved from the inode is then converted, it contains the list of inodes of the files and directories in the directory. For more information, see the \texttt{read\_dir} function in the \texttt{dir\_load.c} file.
+
+\paragraph{Change of Directory}\mbox{}\\
+The \texttt{dir\_change} command is used to change the current directory in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item An integer, \texttt{inode}, indicating the index of the directory to be changed to.
+\end{itemize}
+
+The command doesn't return any value.
+
+When this command is executed, it first checks if the inode is a directory. If it is not, it doesn't change anything. Otherwise, it reads the directory using the \texttt{read\_dir} command and updates the current directory in the disk image to the directory read. For more information, see the \texttt{dir\_change} function in the \texttt{dir\_change.c} file.
+
+\paragraph{Saving a Directory}\mbox{}\\
+The \texttt{save\_dir} command is used to save the contents of a directory in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item A file\_list\_t pointer, \texttt{file\_list}, which points to the list of files and directories in the directory.
+    \item An integer, \texttt{inode}, indicating the index of the directory to be saved.
+\end{itemize}
+
+The command doesn't return any value.
+
+When this command is executed, it first change the list into an array unsigned char, and then writes the array to the inode using the \texttt{inode\_edit} command. For more information, see the \texttt{dir\_save} function in the \texttt{dir\_edit.c} file.
+
+\paragraph{Creating a File}\mbox{}\\
+The \texttt{touch} command is used to create a file in the disk image and add it to the current directory. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item A string, \texttt{file\_name}, which contains the name of the file to be created.
+\end{itemize}
+
+The command returns an integer indicating the inode index of the file created. If the file could not be created, it returns -1.
+
+When this command is executed, it first alloc a new inode using the \texttt{alloc\_inode} command, indicating that it is a file in the mode argument. Then it add the file to the list of files in the current directory. Finally, it saves the current directory using the \texttt{save\_dir} command. For more information, see the \texttt{touch} function in the \texttt{touch.c} file.
+
+\paragraph{Creating a Directory}\mbox{}\\
+The \texttt{mkdir} command is used to create a directory in the disk image and add it to the current directory. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item A string, \texttt{dir\_name}, which contains the name of the directory to be created.
+\end{itemize}
+
+The command returns an integer indicating the inode index of the directory created. If the directory could not be created, it returns -1.
+
+When this command is executed, it first alloc a new inode using the \texttt{alloc\_inode} command, indicating that it is a directory in the mode argument. It will add the \texttt{.} and \texttt{..} files to the directory. Then it add the directory to the list of files in the current directory. Finally, it saves the directory and the current directory using the \texttt{save\_dir} command. For more information, see the \texttt{mkdir} function in the \texttt{mkdir.c} file.
+
+\paragraph{Removing a File}\mbox{}\\
+The \texttt{rm} command is used to remove a file in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item A dir\_buff\_t pointer, \texttt{dir\_buff}, which points to the structure containing information about the directory containing the file.
+    \item An integer, \texttt{inode}, indicating the index of the file to be removed.
+\end{itemize}
+
+The command doesn't return any value.
+
+When this command is executed, it will look for the file in the directory and remove it from the list of files in the directory. Then it will free the inode of the file using the \texttt{free\_inode} command. Finally, it will save the directory using the \texttt{save\_dir} command. For more information, see the \texttt{rm} function in the \texttt{rm.c} file.
+
+\paragraph{Removing a Directory}\mbox{}\\
+The \texttt{rmdir} command is used to remove a directory and it's content in the disk image. It takes the following arguments as input:
+
+\begin{itemize}
+    \item A \texttt{disk\_t} pointer, \texttt{disk}, which points to the structure containing information about the disk image.
+    \item A dir\_buff\_t pointer, \texttt{dir\_buff}, which points to the structure containing information about the directory containing the file.
+    \item An integer, \texttt{inode}, indicating the index of the file to be removed.
+\end{itemize}
+
+The command doesn't return any value.
+
+When this command is executed, it will read the content of the directory using the \texttt{read\_dir} command. Then it will check all the files and directories in the directory. If the file is a directory, it will call the \texttt{rmdir} command recursively. If the file is a file, it will call the \texttt{rm} command (It will nevertheless not remove the \texttt{.} and \texttt{..} files). Finally, it will remove the directory from the list of files in the parent directory and free the inode of the directory using the \texttt{free\_inode} command and save the parent directory using the \texttt{save\_dir} command. For more information, see the \texttt{rmdir} function in the \texttt{rmdir.c} file.
+
+\section{Conclusion}
+
+This project gave us the opportunity to learn more about the Linux file system . While we were unable to include all of the features we had intended due to time constraints, we are open to any suggestions or questions you may have on how to further improve the project. Please don't hesitate to reach out to us if you have any feedback or inquiries. We hope you have a wonderful day.
+
+\end{document}
